@@ -81,12 +81,10 @@ TLSCertificateChain >> loadHost [
 			, self source host , ':443'
 			, (self proxy ifNil: [ '' ] ifNotNil: [ ' -proxy ' , self proxy ])
 			, ' -showcerts 2>&1 | sed --quiet "/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p"'.
-	self rawChain
-		ifNil: [ OSSUnixSubprocess new
-				redirectStdout;
-				redirectStderr;
+	self
+		rawChain: (GtSubprocessWithInMemoryOutput new
 				shellCommand: getRawCertChainCommand;
-				runAndWaitOnExitDo: [ :command :outString | self rawChain: outString ] ].
+				runAndWait) stdout.
 	^ getRawCertChainCommand
 ]
 
@@ -103,8 +101,9 @@ TLSCertificateChain >> parse [
 				put: (dividerString split: (self parseCertChainPart: each)) allButLast ].
 	temp
 		at: 'rawCert'
-		put: ((dividerString split: self rawChain) allButLast
-				collect: [ :each | each , dividerString ]).
+		put: ((dividerString split: self rawChain)
+				select: [ :each | each lines size > 2 ]
+				thenCollect: [ :each | each , dividerString ]).
 
 	1
 		to: (temp at: 'issuer') size
@@ -120,17 +119,10 @@ TLSCertificateChain >> parse [
 
 { #category : #accessing }
 TLSCertificateChain >> parseCertChainPart: aString [
-	| process stdout |
-	process := OSSUnixSubprocess new.
-	process
+	^ (GtSubprocessWithInMemoryOutput new
 		shellCommand: self load , ' | while openssl x509 -noout -' , aString
 				, ' 2>/dev/null; do : ; echo "-----END CERTIFICATE-----" ; done';
-		redirectStdout;
-		redirectStderr.
-
-	process
-		runAndWaitOnExitDo: [ :command :outString :errString | stdout := outString ].
-	^ stdout
+		runAndWait) stdout
 ]
 
 { #category : #accessing }
