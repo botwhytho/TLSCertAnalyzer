@@ -135,13 +135,8 @@ TLSCertAnalyzer >> gtCertsSortedByExpiryFor: aView [
 		items: self certs;
 		column: 'Cert Chain File or URL' text: [ :each | each asString ];
 		column: 'Expiration Date'
-			stencil: [ :each | 
-				BlTextElement new
-					text: '' asRopedText;
-					withAsyncPromiseDo: [ :anElementPromise | 
-						anElementPromise
-							promise: each futureComputation;
-							whenPending: [ :theElement :fulfilledPromise | 
-								fulfilledPromise isFulfilled
-									ifTrue: [ theElement text: fulfilledPromise certs first expiresOn asRopedText ] ] ] ]
+			text: [ :each | 
+				each futureComputation isFulfilled
+					ifTrue: [ each certs first expiresOn ]
+					ifFalse: [ '' ] ]
 ]

@@ -53,7 +53,8 @@ TLSCertificateChain >> futureComputation: aPromise [
 TLSCertificateChain >> gtCertDetailsFor: aView [
 	^ aView columnedList
 		items: self certs;
-		column: 'Certificate' text: #asString;
+		column: 'Certificate'
+			text: #asString;
 		column: 'Valid From' text: #validFrom;
 		column: 'Expires On' text: #expiresOn
 ]
@@ -68,6 +69,19 @@ TLSCertificateChain >> gtChainFor: aView [
 				matchParent;
 				stencil: [ self futureComputation wait.
 					(self gtCertDetailsFor: GtPhlowEmptyView new) asElement ] ]
+]
+
+{ #category : #accessing }
+TLSCertificateChain >> gtSpotterForCertsFor: aSearch [
+	<gtSearch>
+	| zipFileSystem |
+	^ aSearch list
+		title: 'Subjects';
+		priority: 5;
+		items: [ self certs ];
+		itemName: #asString;
+		itemsLimit: Float infinity;
+		filterBySubstring
 ]
 
 { #category : #accessing }
@@ -117,6 +131,7 @@ TLSCertificateChain >> parse [
 		do: [ :index | 
 			self certs
 				add: (TLSCertificate new
+						certChain: self;
 						issuer: (temp at: 'issuer' at: index) trimBoth;
 						rawCert: (temp at: 'rawCert' at: index);
 						subject: (temp at: 'subject' at: index) trimBoth;

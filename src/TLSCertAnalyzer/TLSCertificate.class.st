@@ -5,10 +5,23 @@ Class {
 		'issuer',
 		'subject',
 		'text',
-		'rawCert'
+		'rawCert',
+		'certChain'
 	],
 	#category : #TLSCertAnalyzer
 }
+
+{ #category : #accessing }
+TLSCertificate >> certChain [
+
+	^ certChain
+]
+
+{ #category : #accessing }
+TLSCertificate >> certChain: anObject [
+
+	certChain := anObject
+]
 
 { #category : #accessing }
 TLSCertificate >> expiresOn [
@@ -21,6 +34,21 @@ TLSCertificate >> expiresOn [
 ]
 
 { #category : #accessing }
+TLSCertificate >> gtCertChainFor: aView [
+	^ aView columnedList
+		items: self certChain certs;
+		column: 'Certificate'
+			stencil: [ :each | 
+				BlTextElement new
+					text: each asString asRopedText;
+					in: [ :textElement | 
+						self = each ifTrue: [ textElement text foreground: (Color blue alpha: 0.67) ].
+						textElement ] ];
+		column: 'Valid From' text: #validFrom;
+		column: 'Expires On' text: #expiresOn
+]
+
+{ #category : #accessing }
 TLSCertificate >> gtCertDetailsFor: aView [
 	<gtView>
 	^ aView explicit
@@ -28,7 +56,13 @@ TLSCertificate >> gtCertDetailsFor: aView [
 		priority: 0;
 		stencil: [ BrVerticalPane new
 				matchParent;
-				addChildren: {BlTextElement new
+				addChildren: {(self gtCertChainFor: GtPhlowEmptyView new) asElement
+							constraintsDo: [ :c | 
+								c horizontal matchParent.
+								c vertical fitContent ];
+							padding: (BlInsets all: 25);
+							border: (BlBorder paint: (Color gray alpha: 0.2) width: 1).
+						BlTextElement new
 							text: self subject asRopedText;
 							padding: (BlInsets all: 10);
 							border: (BlBorder paint: (Color gray alpha: 0.2) width: 1).
@@ -55,7 +89,7 @@ TLSCertificate >> gtCertDetailsFor: aView [
 										vMatchParent;
 										aptitude: (BrGlamorousRegularEditorAptitude new
 												glamorousRegularFont;
-												glamorousRegularSmallSize)}} ]
+												glamorousRegularSmallSize)}}	"vFitContent;" ]
 ]
 
 { #category : #accessing }
