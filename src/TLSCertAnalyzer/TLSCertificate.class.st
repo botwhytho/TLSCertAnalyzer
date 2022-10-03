@@ -11,6 +11,16 @@ Class {
 }
 
 { #category : #accessing }
+TLSCertificate >> expiresOn [
+	^ ((self text lines
+		in: [ :lines | 
+			lines
+				at: (lines detectIndex: [ :line | line includesSubstring: 'Validity' ]) + 2 ])
+		copyReplaceAll: 'Not After :'
+		with: '') trimBoth
+]
+
+{ #category : #accessing }
 TLSCertificate >> gtCertDetailsFor: aView [
 	<gtView>
 	^ aView explicit
@@ -100,4 +110,14 @@ TLSCertificate >> text [
 TLSCertificate >> text: anObject [
 
 	text := anObject
+]
+
+{ #category : #accessing }
+TLSCertificate >> validFrom [
+	^ ((self text lines
+		in: [ :lines | 
+			lines
+				at: (lines detectIndex: [ :line | line includesSubstring: 'Validity' ]) + 1 ])
+		copyReplaceAll: 'Not Before:'
+		with: '') trimBoth
 ]

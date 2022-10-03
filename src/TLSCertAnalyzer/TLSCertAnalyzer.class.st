@@ -125,6 +125,23 @@ TLSCertAnalyzer >> gtCertsFor: aView [
 		stencil: [ BrVerticalPane new
 				matchParent;
 				addChildren: {self exploreNewCert.
-						((self certs sorted: #asString ascending) gtItemsFor: GtPhlowView empty)
-							asElement} ]
+						(self gtCertsSortedByExpiryFor: GtPhlowView empty) asElement} ]
+]
+
+{ #category : #accessing }
+TLSCertAnalyzer >> gtCertsSortedByExpiryFor: aView [
+	self flag: 'TODO: sort by expiry date, currently not sorting.'.
+	^ aView columnedList
+		items: self certs;
+		column: 'Cert Chain File or URL' text: [ :each | each asString ];
+		column: 'Expiration Date'
+			stencil: [ :each | 
+				BlTextElement new
+					text: '' asRopedText;
+					withAsyncPromiseDo: [ :anElementPromise | 
+						anElementPromise
+							promise: each futureComputation;
+							whenPending: [ :theElement :fulfilledPromise | 
+								fulfilledPromise isFulfilled
+									ifTrue: [ theElement text: fulfilledPromise certs first expiresOn asRopedText ] ] ] ]
 ]

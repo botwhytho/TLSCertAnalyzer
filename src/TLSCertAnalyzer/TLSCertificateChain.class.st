@@ -6,7 +6,7 @@ Class {
 		'proxy',
 		'rawChain',
 		'certs',
-		'cachedFuture'
+		'futureComputation'
 	],
 	#category : #TLSCertAnalyzer
 }
@@ -17,27 +17,13 @@ TLSCertificateChain class >> load: aFileOrUrl [
 		source: aFileOrUrl;
 		in: [ :certChain | 
 			certChain
-				cachedFuture: (AsyncCachedFuture
-						forFuture: [ certChain analyze ] asAsyncFuture
-						cache: AsyncFutureCache new);
+				futureComputation: [ certChain analyze ] asAsyncFuture await;
 				yourself ]
 ]
 
 { #category : #accessing }
 TLSCertificateChain >> analyze [
 	self parse
-]
-
-{ #category : #accessing }
-TLSCertificateChain >> cachedFuture [
-
-	^ cachedFuture
-]
-
-{ #category : #accessing }
-TLSCertificateChain >> cachedFuture: anObject [
-
-	cachedFuture := anObject
 ]
 
 { #category : #accessing }
@@ -52,6 +38,27 @@ TLSCertificateChain >> certs: anObject [
 ]
 
 { #category : #accessing }
+TLSCertificateChain >> futureComputation [
+
+	^ futureComputation
+]
+
+{ #category : #accessing }
+TLSCertificateChain >> futureComputation: aPromise [
+
+	futureComputation := aPromise
+]
+
+{ #category : #accessing }
+TLSCertificateChain >> gtCertDetailsFor: aView [
+	^ aView columnedList
+		items: self certs;
+		column: 'Certificate' text: #asString;
+		column: 'Valid From' text: #validFrom;
+		column: 'Expires On' text: #expiresOn
+]
+
+{ #category : #accessing }
 TLSCertificateChain >> gtChainFor: aView [
 	<gtView>
 	^ aView explicit
@@ -59,8 +66,8 @@ TLSCertificateChain >> gtChainFor: aView [
 		priority: 0;
 		stencil: [ BrAsyncWidget new
 				matchParent;
-				stencil: [ self cachedFuture wait.
-					(self certs gtItemsFor: GtPhlowEmptyView new) asElement ] ]
+				stencil: [ self futureComputation wait.
+					(self gtCertDetailsFor: GtPhlowEmptyView new) asElement ] ]
 ]
 
 { #category : #accessing }
