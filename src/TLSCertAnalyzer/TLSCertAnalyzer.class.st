@@ -68,8 +68,9 @@ TLSCertAnalyzer >> exploreNewCert [
 						BrButton new
 							aptitude: BrGlamorousButtonWithLabelAptitude new;
 							label: 'Explore';
-							action: [ :aButton | 
-								aButton phlow
+							action: [ :aButtonElement | 
+								| viewContent |
+								aButtonElement phlow
 									spawnObject: (fileOrUrl text asString
 											in: [ :aFileOrUrl | 
 												(TLSCertificateChain
@@ -78,7 +79,12 @@ TLSCertAnalyzer >> exploreNewCert [
 														aCertChain source isFile
 															ifFalse: [ proxy text asString ifNotEmpty: [ :notEmpty | aCertChain proxy: notEmpty ] ].
 														self certs add: aCertChain.
-														aCertChain ] ]) ]} ]
+														aCertChain ] ]).
+								viewContent := aButtonElement
+										allParentsDetect: [ :each | each phlow isViewContent ]
+										ifFound: [ :found | found ]
+										ifNone: [ nil ].
+								viewContent phlow syncUpdate ]} ]
 ]
 
 { #category : #accessing }
