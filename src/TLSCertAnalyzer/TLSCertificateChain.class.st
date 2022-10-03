@@ -123,7 +123,7 @@ TLSCertificateChain >> parse [
 	temp
 		at: 'rawCert'
 		put: ((dividerString split: self rawChain)
-				select: [ :each | each lines size > 2 ]
+				select: [ :each | each lines size > 1 ]
 				thenCollect: [ :each | each , dividerString ]).
 
 	1
