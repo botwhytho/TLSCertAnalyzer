@@ -76,19 +76,17 @@ TLSCertificateChain >> loadFile [
 
 { #category : #accessing }
 TLSCertificateChain >> loadHost [
-	| getRawCertChainCommand process |
-	getRawCertChainCommand := 'openssl s_client -connect ' , self source host
-			, ':443' , (self proxy ifNil: [ '' ] ifNotNil: [ ' -proxy ' , self proxy ])
-			, ' -showcerts 2>&1 | sed --quiet "/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p"'.	"process := GtSubprocessWithInMemoryOutput new
-			
-			shellCommand: getRawCertChainCommand;
-			runAndWait."
+	| getRawCertChainCommand |
+	getRawCertChainCommand := 'echo | openssl s_client -connect '
+			, self source host , ':443'
+			, (self proxy ifNil: [ '' ] ifNotNil: [ ' -proxy ' , self proxy ])
+			, ' -showcerts 2>&1 | sed --quiet "/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p"'.
 	self rawChain
-		ifNil: [ [ OSSUnixSubprocess new
+		ifNil: [ OSSUnixSubprocess new
 				redirectStdout;
+				redirectStderr;
 				shellCommand: getRawCertChainCommand;
-				runAndWaitOnExitDo: [ :command :outString | self rawChain: outString ] ]
-				asAsyncFuture await asyncThen: [ self inform: 'Done' ] ].
+				runAndWaitOnExitDo: [ :command :outString | self rawChain: outString ] ].
 	^ getRawCertChainCommand
 ]
 
@@ -125,7 +123,7 @@ TLSCertificateChain >> parseCertChainPart: aString [
 	| process stdout |
 	process := OSSUnixSubprocess new.
 	process
-		shellCommand: 'cat ' , self source pathString , ' | while openssl x509 -noout -' , aString
+		shellCommand: self load , ' | while openssl x509 -noout -' , aString
 				, ' 2>/dev/null; do : ; echo "-----END CERTIFICATE-----" ; done';
 		redirectStdout;
 		redirectStderr.

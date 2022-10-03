@@ -11,6 +11,44 @@ Class {
 }
 
 { #category : #accessing }
+TLSCertificate >> gtCertDetailsFor: aView [
+	<gtView>
+	^ aView explicit
+		title: 'Cert Details';
+		priority: 0;
+		stencil: [ BrVerticalPane new
+				matchParent;
+				addChildren: {BlTextElement new
+							text: self subject asRopedText;
+							padding: (BlInsets all: 10);
+							border: (BlBorder paint: (Color gray alpha: 0.2) width: 1).
+						BlTextElement new
+							text: self issuer asRopedText;
+							padding: (BlInsets all: 10);
+							border: (BlBorder paint: (Color gray alpha: 0.2) width: 1).
+						BrHorizontalPane new
+							matchParent;
+							addChildren: {BrEditor new
+										text: self rawCert;
+										padding: (BlInsets all: 10);
+										border: (BlBorder paint: (Color gray alpha: 0.2) width: 1);
+										hMatchParent;
+										vMatchParent;
+										aptitude: (BrGlamorousRegularEditorAptitude new
+												glamorousRegularFont;
+												glamorousRegularSmallSize).
+									BrEditor new
+										text: self text;
+										padding: (BlInsets all: 10);
+										border: (BlBorder paint: (Color gray alpha: 0.2) width: 1);
+										hMatchParent;
+										vMatchParent;
+										aptitude: (BrGlamorousRegularEditorAptitude new
+												glamorousRegularFont;
+												glamorousRegularSmallSize)}} ]
+]
+
+{ #category : #accessing }
 TLSCertificate >> issuer [
 
 	^ issuer
